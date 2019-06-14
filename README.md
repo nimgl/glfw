@@ -11,6 +11,7 @@ modules.
 
 ## Installation
 
+
 ### Nimble download
 
 You can install this package through the official package manager of Nim.
@@ -30,6 +31,16 @@ $ git clone --recursive -j8 https://github.com/nimgl/glfw.git
 $ cd glfw
 $ nimble install
 ```
+
+### NimGL module
+
+```bash
+$ nimble install nimgl
+```
+
+You can find more information in the [main repo](https://github.com/nimgl/nimgl).
+
+### Development
 
 It is currently being developed and tested on
 
