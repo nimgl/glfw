@@ -56,8 +56,10 @@ related feel free to PR them or open an Issue with the specification and
 if you can some examples to have an idea on how to implement it.
 Thank you so much :tada:
 
-This being a separate module is a direct copy from the main library, please PR
-and open Issues in the [main repository](https://github.com/nimgl/nimgl).
+### This being a separate module behaves slightly diferently.
+
+Please open all issues in the [main repository](https://github.com/nimgl/nimgl).  
+The PRs and new feature development will occur in each binding's repo.
 
 ## Usage
 
