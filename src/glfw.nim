@@ -370,7 +370,7 @@ type
     gpLast
   GLFWKey* {.size: int32.sizeof.} = enum
     ## KeyCodes, a lot of them
-    keyUnknown      = (-1, "unkown")
+    keyUnknown      = (-1, "unknown")
     keySpace        = (32, "space")
     keyApostrophe   = (39, "apostrophe")
     keyComma        = (44, "comma")
@@ -475,7 +475,7 @@ type
     keyKP_7         = (327, "kp7")
     keyKP_8         = (328, "kp8")
     keyKP_9         = (329, "kp9")
-    keyKP_Decimal   = (330, "decial")
+    keyKP_Decimal   = (330, "decimal")
     keyKP_Divide    = (331, "divide")
     keyKP_Multiply  = (332, "multiply")
     keyKP_Subtract  = (333, "substract")
