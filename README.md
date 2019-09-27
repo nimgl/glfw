@@ -27,9 +27,7 @@ only able to be accesible by direct git url.
 ### Nimble direct install
 
 ```bash
-$ git clone --recursive -j8 https://github.com/nimgl/glfw.git
-$ cd glfw
-$ nimble install
+$ nimble develop https://github.com/nimgl/glfw.git
 ```
 
 ### NimGL module
@@ -66,14 +64,14 @@ The PRs and new feature development will occur in each binding's repo.
 ```nim
 import glfw
 
-proc keyProc(window: GLFWWindow, key: GLFWKey, scancode: int32, action: GLFWKeyAction, mods: GLFWKeyMod): void {.cdecl.} =
-  if key == keyESCAPE and action == kaPress:
+proc keyProc(window: GLFWWindow, key: int32, scancode: int32, action: int32, mods: int32): void {.cdecl.} =
+  if key == GLFWKey.Escape and action == GLFWPress:
     window.setWindowShouldClose(true)
 
 proc main() =
   assert glfwInit()
 
-  let w: GLFWWindow = glfwCreateWindow(800, 600, "NimGL", nil, nil)
+  let w: GLFWWindow = glfwCreateWindow(800, 600)
   if w == nil:
     quit(-1)
 
@@ -86,7 +84,7 @@ proc main() =
 
   w.destroyWindow()
   glfwTerminate()
-
+  
 main()
 ```
 
