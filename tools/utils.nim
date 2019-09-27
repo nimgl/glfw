@@ -9,11 +9,10 @@ const srcHeader* = """
 ## Any edits will be overwritten by the generator.
 ##
 ## The aim is to achieve as much compatibility with C as possible.
-## All procedures which have an object in the arguments won't have the glfw prefix.
+## All procedures which have a GLFW object in the arguments won't have the glfw prefix.
 ## Turning ``glfwMakeContextCurrent(window)`` into ``window.makeContextCurrent()``.
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
-# Sorry for all whitespace in the documentation but I tried with \n and | and failed miserably.
 
 import strutils
 
@@ -98,7 +97,7 @@ const preProcs* = """
 when defined(glfwDLL):
   {.push dynlib: glfw_dll, cdecl.}
 else:
-  {.push cdecl.}
+  {.push nodecl.}
 """
 
 const typeDefinitions* = """
@@ -125,4 +124,24 @@ const typeDefinitions* = """
     ## This describes the input state of a gamepad.
     buttons*: array[15, bool]
     axes*: array[6, float32]
+"""
+
+let boolProcs* = [
+  "GLFWWindowfocusFun", "GLFWWindowiconifyFun", "GLFWCursorenterFun", "glfwInit",
+  "setWindowShouldClose", "windowShouldClose", "glfwJoystickPresent", "glfwGetGamepadState"
+]
+
+const converters* = """
+converter toGLFWKey*(x: int32): GLFWKey = GLFWKey(x)
+converter toint32*(x: GLFWKey): int32 = x.int32
+converter toGLFWHat*(x: int32): GLFWHat = GLFWHat(x)
+converter toint32*(x: GLFWHat): int32 = x.int32
+converter toGLFWMouseButton*(x: int32): GLFWMouseButton = GLFWMouseButton(x)
+converter toint32*(x: GLFWMouseButton): int32 = x.int32
+converter toGLFWJoystick*(x: int32): GLFWJoystick = GLFWJoystick(x)
+converter toint32*(x: GLFWJoystick): int32 = x.int32
+converter toGLFWGamepadButton*(x: int32): GLFWGamepadButton = GLFWGamepadButton(x)
+converter toint32*(x: GLFWGamepadButton): int32 = x.int32
+converter toGLFWGamepadAxis*(x: int32): GLFWGamepadAxis = GLFWGamepadAxis(x)
+converter toint32*(x: GLFWGamepadAxis): int32 = x.int32
 """

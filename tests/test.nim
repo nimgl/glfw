@@ -35,16 +35,17 @@ import glfw
 
 var window: GLFWWindow
 
-assert glfwInit() == 1
+assert glfwInit()
 
 window = glfwCreateWindow(640, 480, "NimGL", nil, nil)
 assert window != nil
 
-window.glfwMakeContextCurrent()
+window.makeContextCurrent()
 
-while not window.glfwWindowShouldClose() == 1:
-  window.glfwSwapBuffers()
+while not window.windowShouldClose():
+  window.swapBuffers()
+
   glfwPollEvents()
 
-window.glfwDestroyWindow()
+window.destroyWindow()
 glfwTerminate()

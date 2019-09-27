@@ -2,6 +2,8 @@
 
 import strutils, streams, sequtils, ./utils, strformat
 
+var opaqueTypes: seq[string]
+
 proc title*(str: string): string =
   if str.len < 1:
     result = ""
@@ -17,8 +19,6 @@ proc title*(oa: openArray[string]): string =
   result = parts.join()
 
 proc formatDoc(doc: string): string =
-  if true:
-    return ""
   result = ""
   var line = ""
   for x in doc.split("\n"):
@@ -31,18 +31,17 @@ proc formatDoc(doc: string): string =
       if line.contains('(') and line.contains(')'):
         var left = line.split("(")
         var right = line.split(")")
-        if right.len < 2:
-          echo right
         line = left[0] & right[1]
       else:
         line = line.replace("@ref", "")
       line = line.replace("[", "")
       line = line.replace("]", "")
 
+    result = result.replace("|", "")
     result.add(line & "\n")
-    for i in 0 ..< spaces:
-      result.add(' ')
-    result.add("##\n")
+    # for i in 0 ..< spaces:
+    #   result.add(' ')
+    # result.add("##\n")
 
 proc translateType*(name: string): string =
   result = name.replace("const ", "")
@@ -79,6 +78,12 @@ proc translateType*(name: string): string =
   if result.startsWith("GLFW"):
     result[4] = result[4].toUpperAscii()
 
+  if opaqueTypes.contains(result):
+    depth.dec
+  for d in 0 ..< depth:
+    result = "ptr " & result
+    if result == "ptr GLFWMonitor":
+      result = "UncheckedArray[GLFWMonitor]"
 
 proc genConstants*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
@@ -185,6 +190,7 @@ proc genTypes*(output: var string) =
       name[4] = name[4].toUpperAscii()
       output.add("  {name}* {{.importc: \"{parts[1]}\".}} = ptr object\n".fmt)
       output.add("    ## Opaque {parts[2][0 ..< parts[2].len-1]} object\n".fmt)
+      opaqueTypes.add(name)
 
   output.add("\n{.pop.}\n")
   output.add("\ntype\n")
@@ -239,17 +245,24 @@ proc genTypes*(output: var string) =
 
       var procSig = "  {procName}* = proc(".fmt
       for i in 0 ..< argsTypes.len:
+        if boolProcs.contains(procName):
+          argsTypes[i] = argsTypes[i].replace("int32", "bool")
         procSig.add("{argsNames[i]}: {argsTypes[i]}, ".fmt)
       if argsTypes.len > 0:
         procSig = procSig[0 ..< procSig.len - 2]
       procSig.add("): {procType} {{.cdecl.}}\n".fmt)
-      output.add(procSig)
+
+      if procName == "GLFWGlProc" or procname == "GLFWVkProc":
+        output.add("  {procName}* = pointer\n".fmt)
+      else:
+        output.add(procSig)
       output.add(documentation.formatDoc())
 
   header.close()
 
 proc genProcs*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
+  output.add("\n" & converters)
   output.add("\n# Procs\n")
   output.add(preProcs & "\n")
 
@@ -278,7 +291,7 @@ proc genProcs*(output: var string) =
     var parts = line.split(' ').filter(proc (x: string): bool = x != "" and x != "GLFWAPI" and x != "const")
 
     counter.inc
-    # if counter != 119:
+    # if counter != 4:
     #   continue
 
     var returnType = parts[0]
@@ -302,8 +315,6 @@ proc genProcs*(output: var string) =
       argsTypes[i] = argParts[0]
       argsNames.add(argParts[1])
 
-    var procName = originalName
-
     # Vulkan specific types ignore TODO implement this
     var vkBreak = returnType.startsWith("Vk")
     for arg in argsTypes:
@@ -313,15 +324,27 @@ proc genProcs*(output: var string) =
       echo "ignored >> " & line
       continue
 
+    var procName = originalName
+    if argsTypes.len > 0 and argsTypes[0].toLowerAscii().startsWith("glfw") and
+      not argsTypes[0].toLowerAscii().contains("fun"):
+
+      procName = procName[4 ..< procName.len]
+      procName[0] = procName[0].toLowerAscii()
+
     argsTypes = argsTypes.map(translateType)
     var procSig = "proc {procName}*(".fmt
     for i in 0 ..< argsTypes.len:
+      if boolProcs.contains(procName):
+        argsTypes[i] = argsTypes[i].replace("int32", "bool")
       procSig.add("{argsNames[i]}: {argsTypes[i]}, ".fmt)
     if argsTypes.len > 0:
       procSig = procSig[0 ..< procSig.len - 2]
+
+    if boolProcs.contains(procName):
+      returnType = returnType.replace("int32", "bool")
     procSig.add("): {returnType} {{.importc: \"{originalName}\".}}".fmt)
 
-    output.add(procSig & " # {counter}\n".fmt)
+    output.add(procSig & "\n")
     output.add(documentation.formatDoc())
 
   output.add("\n{.pop.}")
