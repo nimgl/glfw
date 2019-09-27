@@ -13,6 +13,9 @@ const srcHeader* = """
 ## Turning ``glfwMakeContextCurrent(window)`` into ``window.makeContextCurrent()``.
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
+##
+## Also, sorry to let you know that all the refs in this documentation are
+## broken so ignore links.
 
 import strutils
 
