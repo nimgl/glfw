@@ -33,21 +33,18 @@
 
 import glfw
 
-var vidMode: GLFWGamepadState
-echo vidMode.axes
+var window: GLFWWindow
 
-# var window: GLFWWindow
+assert glfwInit() == 1
 
-# assert glfwInit()
+window = glfwCreateWindow(640, 480, "NimGL", nil, nil)
+assert window != nil
 
-# window = glfwCreateWindow(640, 480, "NimGL", nil, nil)
-# assert window != nil
+window.glfwMakeContextCurrent()
 
-# window.makeContextCurrent()
+while not window.glfwWindowShouldClose() == 1:
+  window.glfwSwapBuffers()
+  glfwPollEvents()
 
-# while not window.windowShouldClose:
-#   window.swapBuffers()
-#   glfwPollEvents()
-
-# window.destroyWindow()
-# glfwTerminate()
+window.glfwDestroyWindow()
+glfwTerminate()

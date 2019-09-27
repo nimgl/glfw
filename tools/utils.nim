@@ -13,9 +13,7 @@ const srcHeader* = """
 ## Turning ``glfwMakeContextCurrent(window)`` into ``window.makeContextCurrent()``.
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
-##
-## Also, sorry to let you know that all the refs in this documentation are
-## broken so ignore links.
+# Sorry for all whitespace in the documentation but I tried with \n and | and failed miserably.
 
 import strutils
 
@@ -34,7 +32,6 @@ when defined(glfwDLL):
     const glfw_dll* = "libglfw3.dylib"
   else:
     const glfw_dll* = "libglfw.so.3"
-  {.pragma: glfw_lib, dynlib: glfw_dll, cdecl.}
 else:
   {.compile: "glfw/private/glfw/src/vulkan.c".}
 
@@ -95,8 +92,6 @@ else:
     compile: "glfw/private/glfw/src/input.c",
     compile: "glfw/private/glfw/src/monitor.c",
     compile: "glfw/private/glfw/src/window.c".}
-
-  {.pragma: glfw_lib, cdecl.}
 """
 
 const preProcs* = """

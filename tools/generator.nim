@@ -16,6 +16,34 @@ proc title*(oa: openArray[string]): string =
   var parts = oa.map(title)
   result = parts.join()
 
+proc formatDoc(doc: string): string =
+  if true:
+    return ""
+  result = ""
+  var line = ""
+  for x in doc.split("\n"):
+    line = x
+    if line == "":
+      continue
+
+    var spaces = line.split('#')[0].count(' ')
+    if line.contains("@ref"):
+      if line.contains('(') and line.contains(')'):
+        var left = line.split("(")
+        var right = line.split(")")
+        if right.len < 2:
+          echo right
+        line = left[0] & right[1]
+      else:
+        line = line.replace("@ref", "")
+      line = line.replace("[", "")
+      line = line.replace("]", "")
+
+    result.add(line & "\n")
+    for i in 0 ..< spaces:
+      result.add(' ')
+    result.add("##\n")
+
 proc translateType*(name: string): string =
   result = name.replace("const ", "")
   result = result.replace("unsigned ", "u")
@@ -56,10 +84,10 @@ proc genConstants*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
   output.add("\n# Constants and Enums\n")
 
-  var line = ""
   var inEnum = "something"
   var isDocumentation = false
   var documentation = ""
+  var line = ""
   while header.readLine(line):
     if line.startsWith("/*!"):
       isDocumentation = true
@@ -105,7 +133,7 @@ proc genConstants*(output: var string) =
           output.add("type\n  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
           if documentation.startsWith("    ## @}"):
             documentation = ""
-          output.add(documentation)
+          output.add(documentation.formatDoc())
 
         var nameParts = name.split('_')
         nameParts.delete(0, nameTrim) # Change depending on enum
@@ -134,7 +162,7 @@ proc genConstants*(output: var string) =
           documentation = ""
         if documentation.replace("\n", "") == "":
           documentation = ""
-        output.add(documentation)
+        output.add(documentation.formatDoc())
   header.close()
 
 proc genTypes*(output: var string) =
@@ -196,9 +224,9 @@ proc genTypes*(output: var string) =
       procName = procName.replace("proc", "Proc")
 
       procParts[1] = procParts[1][1 ..< procParts[1].len]
-      var procArguments = procParts[1].split(',')
-      procArguments = procArguments.map(translateType)
-      procArguments = procArguments.filter(proc (x: string): bool = x != "void" and x != "")
+      var argsTypes = procParts[1].split(',')
+      argsTypes = argsTypes.map(translateType)
+      argsTypes = argsTypes.filter(proc (x: string): bool = x != "void" and x != "")
 
       var argsNames: seq[string]
 
@@ -210,27 +238,93 @@ proc genTypes*(output: var string) =
         argsNames.add(docParts[0])
 
       var procSig = "  {procName}* = proc(".fmt
-      for i in 0 ..< procArguments.len:
-        procSig.add("{argsNames[i]}: {procArguments[i]}, ".fmt)
-      if procArguments.len > 0:
+      for i in 0 ..< argsTypes.len:
+        procSig.add("{argsNames[i]}: {argsTypes[i]}, ".fmt)
+      if argsTypes.len > 0:
         procSig = procSig[0 ..< procSig.len - 2]
       procSig.add("): {procType} {{.cdecl.}}\n".fmt)
       output.add(procSig)
-      output.add(documentation)
+      output.add(documentation.formatDoc())
 
   header.close()
 
 proc genProcs*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
+  output.add("\n# Procs\n")
+  output.add(preProcs & "\n")
 
+  var isDocumentation = false
+  var documentation = ""
   var line = ""
+  var counter = 0# remove
   while header.readLine(line):
+    if line.startsWith("/*!"):
+      isDocumentation = true
+      documentation = ""
+
+    if isDocumentation and not line.startsWith("GLFWAPI"):
+      line = line.replace("/*!", "  ##")
+      line = line.replace(" * ", "  ##")
+      line = line.replace(" *", "  ##")
+      if not line.startsWith("#define") and not line.startsWith("  ## @{"):
+        if line != "  ##/" or not line.contains("##/"):
+          documentation.add(line & "\n")
+        else:
+          isDocumentation = false
+
     if not line.startsWith("GLFWAPI"):
       continue
     line = line[0 ..< line.len - 2]
-    let parts = line.split(' ').filter(proc (x: string): bool = x != "" and x != "GLFWAPI" and x != "const")
-    echo parts
+    var parts = line.split(' ').filter(proc (x: string): bool = x != "" and x != "GLFWAPI" and x != "const")
 
+    counter.inc
+    # if counter != 119:
+    #   continue
+
+    var returnType = parts[0]
+    if returnType == "unsigned":
+      returnType = "u" & parts[1]
+      parts.delete(0, 0)
+    returnType = returnType.translateType()
+
+    let originalName = parts[1].split('(')[0]
+    var argsLine = line.split("(")[1]
+    var argsTypes = argsLine.split(",")
+    argsTypes = argsTypes.filter(proc (x: string): bool = x != "void" and x != "")
+    argsTypes.apply(proc (x: var string) =
+      x = x.replace("const", "")
+      while x.startsWith(" "):
+        x = x[1 ..< x.len]
+    )
+    var argsNames: seq[string]
+    for i in 0 ..< argsTypes.len:
+      var argParts = argsTypes[i].split(' ')
+      argsTypes[i] = argParts[0]
+      argsNames.add(argParts[1])
+
+    var procName = originalName
+
+    # Vulkan specific types ignore TODO implement this
+    var vkBreak = returnType.startsWith("Vk")
+    for arg in argsTypes:
+      if arg.startsWith("Vk"):
+        vkBreak = true
+    if vkBreak:
+      echo "ignored >> " & line
+      continue
+
+    argsTypes = argsTypes.map(translateType)
+    var procSig = "proc {procName}*(".fmt
+    for i in 0 ..< argsTypes.len:
+      procSig.add("{argsNames[i]}: {argsTypes[i]}, ".fmt)
+    if argsTypes.len > 0:
+      procSig = procSig[0 ..< procSig.len - 2]
+    procSig.add("): {returnType} {{.importc: \"{originalName}\".}}".fmt)
+
+    output.add(procSig & " # {counter}\n".fmt)
+    output.add(documentation.formatDoc())
+
+  output.add("\n{.pop.}")
   header.close()
 
 proc glfwGenerate*() =
