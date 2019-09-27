@@ -332,6 +332,8 @@ proc genProcs*(output: var string) =
       procName[0] = procName[0].toLowerAscii()
 
     argsTypes = argsTypes.map(translateType)
+    if procName == "glfwCreateWindow":
+      procName = "glfwCreateWindowC"
     var procSig = "proc {procName}*(".fmt
     for i in 0 ..< argsTypes.len:
       if boolProcs.contains(procName):
@@ -347,7 +349,8 @@ proc genProcs*(output: var string) =
     output.add(procSig & "\n")
     output.add(documentation.formatDoc())
 
-  output.add("\n{.pop.}")
+  output.add("\n{.pop.}\n")
+  output.add("\n" & createWindowProc)
   header.close()
 
 proc glfwGenerate*() =

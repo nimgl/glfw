@@ -11,7 +11,7 @@
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
 
-import strutils
+import strutils, ./glfw/private/logo
 
 proc currentSourceDir(): string =
   result = currentSourcePath().replace("\\", "/")
@@ -1883,7 +1883,7 @@ proc glfwWindowHintString*(hint: int32, value: cstring): void {.importc: "glfwWi
   ## @since Added in version 3.3.
   ##
   ## @ingroup window
-proc glfwCreateWindow*(width: int32, height: int32, title: cstring, monitor: GLFWMonitor, share: GLFWWindow): GLFWWindow {.importc: "glfwCreateWindow".}
+proc glfwCreateWindowC*(width: int32, height: int32, title: cstring, monitor: GLFWMonitor, share: GLFWWindow): GLFWWindow {.importc: "glfwCreateWindow".}
   ## @brief Creates a window and its associated context.
   ##
   ## This function creates a window and its associated OpenGL or OpenGL ES
@@ -4763,3 +4763,11 @@ proc glfwGetRequiredInstanceExtensions*(count: ptr uint32): ptr cstring {.import
   ## @ingroup vulkan
 
 {.pop.}
+
+proc glfwCreateWindow*(width: int32, height: int32, title: cstring = "NimGL", monitor: GLFWMonitor = nil, share: GLFWWindow = nil, icon: bool = true): GLFWWindow =
+  ## Creates a window and its associated OpenGL or OpenGL ES
+  ## Utility to create the window with a proper icon.
+  result = glfwCreateWindowC(width, height, title, monitor, share)
+  if not icon: return result
+  var image = GLFWImage(pixels: cast[ptr cuchar](nimglLogo[0].addr), width: nimglLogoWidth, height: nimglLogoHeight)
+  result.setWindowIcon(1, image.addr)

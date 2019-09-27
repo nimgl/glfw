@@ -37,7 +37,7 @@ var window: GLFWWindow
 
 assert glfwInit()
 
-window = glfwCreateWindow(640, 480, "NimGL", nil, nil)
+window = glfwCreateWindow(640, 480)
 assert window != nil
 
 window.makeContextCurrent()
