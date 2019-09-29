@@ -14,14 +14,7 @@ const srcHeader* = """
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
 
-import strutils, ./glfw/private/logo
-
-proc currentSourceDir(): string =
-  result = currentSourcePath().replace("\\", "/")
-  result = result[0 ..< result.rfind("/")]
-
-{.passC: "-I" & currentSourceDir() & "/glfw/private/glfw/include/".}
-{.pragma: glfw_header, header: "GLFW/glfw3.h".}
+import ./glfw/private/logo
 
 when defined(glfwDLL):
   when defined(windows):
@@ -96,11 +89,11 @@ const preProcs* = """
 when defined(glfwDLL):
   {.push dynlib: glfw_dll, cdecl.}
 else:
-  {.push nodecl.}
+  {.push cdecl.}
 """
 
 const typeDefinitions* = """
-  GLFWVidMode* {.importc: "GLFWvidmode".} = object
+  GLFWVidMode* = object
     ## This describes a single video mode.
     width*: int32
     height*: int32
@@ -108,18 +101,18 @@ const typeDefinitions* = """
     greenBits*: int32
     blueBits*: int32
     refreshRate*: int32
-  GLFWGammaRamp* {.importc: "GLFWgammaramp".} = object
+  GLFWGammaRamp* = object
     ## This describes the gamma ramp for a monitor.
     red*: uint16
     green*: uint16
     blue*: uint16
     size*: uint32
-  GLFWImage* {.importc: "GLFWimage".} = object
+  GLFWImage* = object
     ## This describes a single 2D image.
     width*: int32
     height*: int32
     pixels*: ptr cuchar
-  GLFWGamepadState* {.importc: "GLFWgamepadstate".} = object
+  GLFWGamepadState* = object
     ## This describes the input state of a gamepad.
     buttons*: array[15, bool]
     axes*: array[6, float32]

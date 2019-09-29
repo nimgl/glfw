@@ -20,6 +20,8 @@ proc title*(oa: openArray[string]): string =
 
 proc formatDoc(doc: string): string =
   result = ""
+  if true:
+    return
   var line = ""
   for x in doc.split("\n"):
     line = x
@@ -173,7 +175,6 @@ proc genConstants*(output: var string) =
 proc genTypes*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
   output.add("\n# Type Definitions\n")
-  output.add("{.push header: \"<GLFW/glfw3.h>\".}\n\n")
   output.add("type\n")
 
   var line = ""
@@ -188,11 +189,10 @@ proc genTypes*(output: var string) =
 
       var name = parts[1]
       name[4] = name[4].toUpperAscii()
-      output.add("  {name}* {{.importc: \"{parts[1]}\".}} = ptr object\n".fmt)
+      output.add("  {name}* = ptr object\n".fmt)
       output.add("    ## Opaque {parts[2][0 ..< parts[2].len-1]} object\n".fmt)
       opaqueTypes.add(name)
 
-  output.add("\n{.pop.}\n")
   output.add("\ntype\n")
 
   var isDocumentation = false
