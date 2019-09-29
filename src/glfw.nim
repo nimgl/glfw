@@ -16,7 +16,6 @@ import strutils, ./glfw/private/logo
 proc currentSourceDir(): string =
   result = currentSourcePath().replace("\\", "/")
   result = result[0 ..< result.rfind("/")]
-  echo result
 
 {.passC: "-I" & currentSourceDir() & "/glfw/private/glfw/include/".}
 {.pragma: glfw_header, header: "GLFW/glfw3.h".}
