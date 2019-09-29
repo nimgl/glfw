@@ -20,8 +20,6 @@ proc title*(oa: openArray[string]): string =
 
 proc formatDoc(doc: string): string =
   result = ""
-  if true:
-    return
   var line = ""
   for x in doc.split("\n"):
     line = x
