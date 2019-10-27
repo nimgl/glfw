@@ -319,8 +319,7 @@ proc genProcs*(output: var string) =
       if arg.startsWith("Vk"):
         vkBreak = true
     if vkBreak:
-      echo "ignored >> " & line
-      continue
+      output.add("when defined(vulkan):\n  ")
 
     var procName = originalName
     if argsTypes.len > 0 and argsTypes[0].toLowerAscii().startsWith("glfw") and
@@ -345,6 +344,11 @@ proc genProcs*(output: var string) =
     procSig.add("): {returnType} {{.importc: \"{originalName}\".}}".fmt)
 
     output.add(procSig & "\n")
+    if vkBreak:
+      var docParts = documentation.split("\n")
+      for i in 0 ..< docParts.len:
+        docParts[i] = "  " & docParts[i]
+      documentation = docParts.join("\n")
     output.add(documentation.formatDoc())
 
   output.add("\n{.pop.}\n")

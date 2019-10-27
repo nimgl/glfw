@@ -83,6 +83,9 @@ else:
     compile: "glfw/private/glfw/src/input.c",
     compile: "glfw/private/glfw/src/monitor.c",
     compile: "glfw/private/glfw/src/window.c".}
+
+when defined(vulkan):
+  include vulkan/vulkan_types
 """
 
 const preProcs* = """
@@ -120,7 +123,8 @@ const typeDefinitions* = """
 
 let boolProcs* = [
   "GLFWWindowfocusFun", "GLFWWindowiconifyFun", "GLFWCursorenterFun", "glfwInit",
-  "setWindowShouldClose", "windowShouldClose", "glfwJoystickPresent", "glfwGetGamepadState"
+  "setWindowShouldClose", "windowShouldClose", "glfwJoystickPresent", "glfwGetGamepadState",
+  "glfwVulkanSupported"
 ]
 
 const converters* = """
