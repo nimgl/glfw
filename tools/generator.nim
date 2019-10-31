@@ -85,6 +85,10 @@ proc translateType*(name: string): string =
   if nativeTypes.contains(result):
     result = "pointer #[{result}]#".fmt
 
+  if result == "cstring[]":
+    result = "cstring"
+    depth.inc
+
   if opaqueTypes.contains(result):
     depth.dec
   for d in 0 ..< depth:
