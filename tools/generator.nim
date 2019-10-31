@@ -78,12 +78,21 @@ proc translateType*(name: string): string =
   if result.startsWith("GLFW"):
     result[4] = result[4].toUpperAscii()
 
+  # Native Please let me know if this doesn't work for you
+  let nativeTypes = ["HWND", "HGLRC", "CGDirectDisplayID", "id", "RRCrtc", "RROutput",
+                     "Window", "GLXContext", "struct", "GLXWindow", "EGLDisplay", "EGLContext",
+                     "EGLSurface", "OSMesaContext"]
+  if nativeTypes.contains(result):
+    result = "pointer #[{result}]#".fmt
+
   if opaqueTypes.contains(result):
     depth.dec
   for d in 0 ..< depth:
     result = "ptr " & result
     if result == "ptr GLFWMonitor":
       result = "UncheckedArray[GLFWMonitor]"
+    elif result == "ptr Display":
+      result = "pointer #[Display]#"
 
 proc genConstants*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
@@ -258,9 +267,13 @@ proc genTypes*(output: var string) =
 
   header.close()
 
-proc genProcs*(output: var string) =
-  let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
-  output.add("\n" & converters)
+proc genProcs*(output: var string, isNative: bool) =
+  let srcFile = "src/glfw/private/glfw/include/GLFW/glfw3.h"
+  let srcNativeFile = "src/glfw/private/glfw/include/GLFW/glfw3native.h"
+  let header = newFileStream(if isNative: srcNativeFile else: srcFile, fmRead)
+
+  if not isNative:
+    output.add("\n" & converters)
   output.add("\n# Procs\n")
   output.add(preProcs & "\n")
 
@@ -313,7 +326,6 @@ proc genProcs*(output: var string) =
       argsTypes[i] = argParts[0]
       argsNames.add(argParts[1])
 
-    # Vulkan specific types ignore TODO implement this
     var vkBreak = returnType.startsWith("Vk")
     for arg in argsTypes:
       if arg.startsWith("Vk"):
@@ -327,6 +339,14 @@ proc genProcs*(output: var string) =
 
       procName = procName[4 ..< procName.len]
       procName[0] = procName[0].toLowerAscii()
+
+    if isNative:
+      if procName == "urface*":
+        procName = "wl_surface"
+      elif procName == "wl_display*":
+        procName = "wl_display"
+      elif procName == "utput*":
+        procName = "wl_output"
 
     argsTypes = argsTypes.map(translateType)
     if procName == "glfwCreateWindow":
@@ -352,7 +372,9 @@ proc genProcs*(output: var string) =
     output.add(documentation.formatDoc())
 
   output.add("\n{.pop.}\n")
-  output.add("\n" & createWindowProc)
+
+  if not isNative:
+    output.add("\n" & createWindowProc)
   header.close()
 
 proc glfwGenerate*() =
@@ -360,9 +382,16 @@ proc glfwGenerate*() =
 
   output.genConstants()
   output.genTypes()
-  output.genProcs()
+  output.genProcs(false)
 
   writeFile("src/glfw.nim", output)
+
+  output = srcNativeHeader
+
+  output.genProcs(true)
+  # output.genProcs("src/glfw/private/glfw/include/GLFW/glfw3native.h")
+
+  writeFile("src/glfw/native.nim", output)
 
 if isMainModule:
   glfwGenerate()
