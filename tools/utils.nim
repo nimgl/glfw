@@ -28,7 +28,7 @@ else:
 
   # Thanks to ephja for making this build system
   when defined(windows):
-    {.passC: "-D_GLFW_WIN32 -DGLFW_EXPOSE_NATIVE_WIN32",
+    {.passC: "-D_GLFW_WIN32",
       passL: "-lopengl32 -lgdi32",
       compile: "glfw/private/glfw/src/win32_init.c",
       compile: "glfw/private/glfw/src/win32_joystick.c",
@@ -101,6 +101,12 @@ const srcNativeHeader* = """
 ## Turning ``glfwMakeContextCurrent(window)`` into ``window.makeContextCurrent()``.
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
+##
+##  **By using the native access functions you assert that you know what you're
+##  doing and how to fix problems caused by using them.  If you don't, you
+##  shouldn't be using them.**
+##
+##  Please assert that you are using the right system for the right procedures.
 
 import glfw
 
@@ -111,6 +117,27 @@ when defined(glfwDLL):
     const glfw_dll* = "libglfw3.dylib"
   else:
     const glfw_dll* = "libglfw.so.3"
+
+when defined(windows):
+  {.passC: "-DGLFW_EXPOSE_NATIVE_WIN32".}
+  if not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_WGL".}
+elif defined(macosx):
+  {.passC: "-DGLFW_EXPOSE_NATIVE_COCOA".}
+  if not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_NSGL".}
+else:
+  if defined(wayland):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_WAYLAND".}
+  else:
+    {.passC: "-DGLFW_EXPOSE_NATIVE_X11".}
+
+  if defined(mesa):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_OSMESA".}
+  elif defined(egl):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_EGL".}
+  elif not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_GLX".}
 """
 
 const preProcs* = """

@@ -311,7 +311,7 @@ proc genProcs*(output: var string, isNative: bool) =
       parts.delete(0, 0)
     returnType = returnType.translateType()
 
-    let originalName = parts[1].split('(')[0]
+    var originalName = parts[1].split('(')[0]
     var argsLine = line.split("(")[1]
     var argsTypes = argsLine.split(",")
     argsTypes = argsTypes.filter(proc (x: string): bool = x != "void" and x != "")
@@ -341,12 +341,15 @@ proc genProcs*(output: var string, isNative: bool) =
       procName[0] = procName[0].toLowerAscii()
 
     if isNative:
-      if procName == "urface*":
-        procName = "wl_surface"
-      elif procName == "wl_display*":
-        procName = "wl_display"
+      if procName == "wl_display*":
+        procName = "getWaylandDisplay"
+        originalName = "glfwGetWaylandDisplay"
       elif procName == "utput*":
-        procName = "wl_output"
+        procName = "getWaylandMonitor"
+        originalName = "glfwGetWaylandMonitor"
+      elif procName == "urface*":
+        procName = "getWaylandWindow"
+        originalName = "glfwGetWaylandWindow"
 
     argsTypes = argsTypes.map(translateType)
     if procName == "glfwCreateWindow":

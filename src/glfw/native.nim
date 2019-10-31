@@ -10,6 +10,12 @@
 ## Turning ``glfwMakeContextCurrent(window)`` into ``window.makeContextCurrent()``.
 ##
 ## You can check the original documentation `here <http://www.glfw.org/docs/latest/>`_.
+##
+##  **By using the native access functions you assert that you know what you're
+##  doing and how to fix problems caused by using them.  If you don't, you
+##  shouldn't be using them.**
+##
+##  Please assert that you are using the right system for the right procedures.
 
 import glfw
 
@@ -20,6 +26,27 @@ when defined(glfwDLL):
     const glfw_dll* = "libglfw3.dylib"
   else:
     const glfw_dll* = "libglfw.so.3"
+
+when defined(windows):
+  {.passC: "-DGLFW_EXPOSE_NATIVE_WIN32".}
+  if not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_WGL".}
+elif defined(macosx):
+  {.passC: "-DGLFW_EXPOSE_NATIVE_COCOA".}
+  if not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_NSGL".}
+else:
+  if defined(wayland):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_WAYLAND".}
+  else:
+    {.passC: "-DGLFW_EXPOSE_NATIVE_X11".}
+
+  if defined(mesa):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_OSMESA".}
+  elif defined(egl):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_EGL".}
+  elif not defined(vulkan):
+    {.passC: "-DGLFW_EXPOSE_NATIVE_GLX".}
 
 # Procs
 when defined(glfwDLL):
@@ -231,7 +258,7 @@ proc getGLXWindow*(window: GLFWWindow): pointer #[GLXWindow]# {.importc: "glfwGe
   ## @since Added in version 3.2.
   ##
   ## @ingroup native
-proc wl_display*(): pointer #[struct]# {.importc: "wl_display*".}
+proc getWaylandDisplay*(): pointer #[struct]# {.importc: "glfwGetWaylandDisplay".}
   ## @brief Returns the `struct wl_display*` used by GLFW.
   ##
   ## @return The `struct wl_display*` used by GLFW, or `NULL` if an
@@ -243,7 +270,7 @@ proc wl_display*(): pointer #[struct]# {.importc: "wl_display*".}
   ## @since Added in version 3.2.
   ##
   ## @ingroup native
-proc wl_output*(monitor: GLFWMonitor): pointer #[struct]# {.importc: "wl_output*".}
+proc getWaylandMonitor*(monitor: GLFWMonitor): pointer #[struct]# {.importc: "glfwGetWaylandMonitor".}
   ## @brief Returns the `struct wl_output*` of the specified monitor.
   ##
   ## @return The `struct wl_output*` of the specified monitor, or `NULL` if an
@@ -255,7 +282,7 @@ proc wl_output*(monitor: GLFWMonitor): pointer #[struct]# {.importc: "wl_output*
   ## @since Added in version 3.2.
   ##
   ## @ingroup native
-proc wl_surface*(window: GLFWWindow): pointer #[struct]# {.importc: "wl_surface*".}
+proc getWaylandWindow*(window: GLFWWindow): pointer #[struct]# {.importc: "glfwGetWaylandWindow".}
   ## @brief Returns the main `struct wl_surface*` of the specified window.
   ##
   ## @return The main `struct wl_surface*` of the specified window, or `NULL` if

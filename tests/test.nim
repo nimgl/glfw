@@ -1,7 +1,7 @@
 # Copyright 2019, NimGL contributors.
 
 import unittest
-import glfw
+import glfw, glfw/native
 
 proc keyProc(window: GLFWWindow, key: int32, scancode: int32, action: int32, mods: int32): void {.cdecl.} =
   if key == GLFWKey.Escape and action == GLFWPress:
@@ -19,6 +19,10 @@ suite "GLFW":
 
     discard window.setKeyCallback(keyProc)
     window.makeContextCurrent()
+
+    var hwnd = window.getWGLContext()
+    if hwnd == nil:
+      echo "oh no"
 
   test "main loop":
     while not window.windowShouldClose:

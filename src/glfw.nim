@@ -25,7 +25,7 @@ else:
 
   # Thanks to ephja for making this build system
   when defined(windows):
-    {.passC: "-D_GLFW_WIN32 -DGLFW_EXPOSE_NATIVE_WIN32",
+    {.passC: "-D_GLFW_WIN32",
       passL: "-lopengl32 -lgdi32",
       compile: "glfw/private/glfw/src/win32_init.c",
       compile: "glfw/private/glfw/src/win32_joystick.c",
