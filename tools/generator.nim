@@ -95,6 +95,8 @@ proc translateType*(name: string): string =
     result = "ptr " & result
     if result == "ptr GLFWMonitor":
       result = "UncheckedArray[GLFWMonitor]"
+    elif result == "ptr cstring":
+      result = "cstringArray"
     elif result == "ptr Display":
       result = "pointer #[Display]#"
 

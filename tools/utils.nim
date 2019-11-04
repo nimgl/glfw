@@ -85,7 +85,7 @@ else:
     compile: "glfw/private/glfw/src/window.c".}
 
 when defined(vulkan):
-  include vulkan/vulkan_types
+  import vulkan
 """
 
 const srcNativeHeader* = """
