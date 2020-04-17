@@ -97,7 +97,7 @@ const
     ## This is incremented when features are added to the API but it remains
     ## backward-compatible.
     ## @ingroup init
-  GLFWVersionRevision* = 2
+  GLFWVersionRevision* = 3
     ## @brief The revision number of the GLFW library.
     ##
     ## This is incremented when a bug fix release is made that does not contain any
@@ -1274,6 +1274,10 @@ proc glfwInit*(): bool {.importc: "glfwInit".}
   ## application to the `Contents/Resources` subdirectory of the application's
   ## bundle, if present.  This can be disabled with the 
   ## GLFW_COCOA_CHDIR_RESOURCES init hint.
+  ##
+  ## @remark @x11 This function will set the `LC_CTYPE` category of the
+  ## application locale according to the current environment if that category is
+  ## still "C".  This is because the "C" locale breaks Unicode text input.
   ##
   ## @thread_safety This function must only be called from the main thread.
   ##
