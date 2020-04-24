@@ -1,6 +1,6 @@
 # Package
 
-version     = "3.3.3"
+version     = "3.3.4"
 author      = "Leonardo Mariscal"
 description = "GLFW bindings for Nim"
 license     = "MIT"
