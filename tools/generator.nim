@@ -57,6 +57,7 @@ proc translateType*(name: string): string =
   result = result.replace("int32", "int")
   if not result.contains("int64"):
     result = result.replace("int", "int32")
+  result = result.replace("float", "float32")
   result = result.replace("double", "float64")
   result = result.replace("size_t", "uint") # uint matches pointer size just like size_t
 

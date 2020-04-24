@@ -175,8 +175,7 @@ const typeDefinitions* = """
 
 let boolProcs* = [
   "GLFWWindowfocusFun", "GLFWWindowiconifyFun", "GLFWCursorenterFun", "glfwInit",
-  "setWindowShouldClose", "windowShouldClose", "glfwJoystickPresent", "glfwGetGamepadState",
-  "glfwVulkanSupported"
+  "setWindowShouldClose", "windowShouldClose", "glfwVulkanSupported"
 ]
 
 const converters* = """
