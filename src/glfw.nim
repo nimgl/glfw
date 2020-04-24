@@ -511,6 +511,16 @@ const
     ## a function that requires it to have one.
     ##
     ## @analysis Application programmer error.  Fix the offending call.
+  GLFWCursorUnavailable* = 0x0001000B
+    ## @brief The specified cursor shape is not available.
+    ##
+    ## The specified standard cursor shape is not available, either because the
+    ## current system cursor theme does not provide it or because it is not
+    ## available on the platform.
+    ##
+    ## @analysis Platform or system settings limitation.  Pick another
+    ## standard cursor shape or create a
+    ## custom cursor.
   GLFWFocused* = 0x00020001
     ## @brief Input focus window hint and attribute
     ##
@@ -706,6 +716,9 @@ const
   GLFWX11InstanceName* = 0x00024002
     ## @brief X11 specific
     ## window hint.
+  GLFWWin32KeyboardMenu* = 0x00025001
+    ## @brief X11 specific
+    ## window hint.
   GLFWNoApi* = 0
   GLFWOpenglApi* = 0x00030001
   GLFWOpenglEsApi* = 0x00030002
@@ -732,27 +745,85 @@ const
   GLFWArrowCursor* = 0x00036001
     ## @brief The regular arrow cursor shape.
     ##
-    ## The regular arrow cursor.
+    ## The regular arrow cursor shape.
   GLFWIbeamCursor* = 0x00036002
     ## @brief The text input I-beam cursor shape.
     ##
     ## The text input I-beam cursor shape.
   GLFWCrosshairCursor* = 0x00036003
-    ## @brief The crosshair shape.
+    ## @brief The crosshair cursor shape.
     ##
-    ## The crosshair shape.
-  GLFWHandCursor* = 0x00036004
-    ## @brief The hand shape.
+    ## The crosshair cursor shape.
+  GLFWPointingHandCursor* = 0x00036004
+    ## @brief The pointing hand cursor shape.
     ##
-    ## The hand shape.
-  GLFWHresizeCursor* = 0x00036005
-    ## @brief The horizontal resize arrow shape.
+    ## The pointing hand cursor shape.
+  GLFWResizeEwCursor* = 0x00036005
+    ## @brief The horizontal resize/move arrow shape.
     ##
-    ## The horizontal resize arrow shape.
-  GLFWVresizeCursor* = 0x00036006
-    ## @brief The vertical resize arrow shape.
+    ## The horizontal resize/move arrow shape.  This is usually a horizontal
+    ## double-headed arrow.
+  GLFWResizeNsCursor* = 0x00036006
+    ## @brief The vertical resize/move arrow shape.
     ##
-    ## The vertical resize arrow shape.
+    ## The vertical resize/move shape.  This is usually a vertical double-headed
+    ## arrow.
+  GLFWResizeNwseCursor* = 0x00036007
+    ## @brief The top-left to bottom-right diagonal resize/move arrow shape.
+    ##
+    ## The top-left to bottom-right diagonal resize/move shape.  This is usually
+    ## a diagonal double-headed arrow.
+    ##
+    ## @note @macos This shape is provided by a private system API and may fail
+    ## with  GLFW_CURSOR_UNAVAILABLE in the future.
+    ##
+    ## @note @x11 This shape is provided by a newer standard not supported by all
+    ## cursor themes.
+    ##
+    ## @note @wayland This shape is provided by a newer standard not supported by
+    ## all cursor themes.
+  GLFWResizeNeswCursor* = 0x00036008
+    ## @brief The top-right to bottom-left diagonal resize/move arrow shape.
+    ##
+    ## The top-right to bottom-left diagonal resize/move shape.  This is usually
+    ## a diagonal double-headed arrow.
+    ##
+    ## @note @macos This shape is provided by a private system API and may fail
+    ## with  GLFW_CURSOR_UNAVAILABLE in the future.
+    ##
+    ## @note @x11 This shape is provided by a newer standard not supported by all
+    ## cursor themes.
+    ##
+    ## @note @wayland This shape is provided by a newer standard not supported by
+    ## all cursor themes.
+  GLFWResizeAllCursor* = 0x00036009
+    ## @brief The omni-directional resize/move cursor shape.
+    ##
+    ## The omni-directional resize cursor/move shape.  This is usually either
+    ## a combined horizontal and vertical double-headed arrow or a grabbing hand.
+  GLFWNotAllowedCursor* = 0x0003600A
+    ## @brief The operation-not-allowed shape.
+    ##
+    ## The operation-not-allowed shape.  This is usually a circle with a diagonal
+    ## line through it.
+    ##
+    ## @note @x11 This shape is provided by a newer standard not supported by all
+    ## cursor themes.
+    ##
+    ## @note @wayland This shape is provided by a newer standard not supported by
+    ## all cursor themes.
+  GLFWHresizeCursor* = GLFW_RESIZE_EW_CURSOR
+    ## @brief Legacy name for compatibility.
+    ##
+    ## This is an alias for compatibility with earlier versions.
+  GLFWVresizeCursor* = GLFW_RESIZE_NS_CURSOR
+    ## @brief Legacy name for compatibility.
+    ##
+    ## This is an alias for compatibility with earlier versions.
+  GLFWHandCursor* = GLFW_POINTING_HAND_CURSOR
+    ## @brief Legacy name for compatibility.
+    ##
+    ## This is an alias for compatibility with earlier versions.
   GLFWConnected* = 0x00040001
   GLFWDisconnected* = 0x00040002
   GLFWJoystickHatButtons* = 0x00050001
@@ -1275,6 +1346,18 @@ proc glfwInit*(): bool {.importc: "glfwInit".}
   ## bundle, if present.  This can be disabled with the 
   ## GLFW_COCOA_CHDIR_RESOURCES init hint.
   ##
+  ## @remark @macos This function will create the main menu and dock icon for the
+  ## application.  If GLFW finds a `MainMenu.nib` it is loaded and assumed to
+  ## contain a menu bar.  Otherwise a minimal menu bar is created manually with
+  ## common commands like Hide, Quit and About.  The About entry opens a minimal
+  ## about dialog with information from the application's bundle.  The menu bar
+  ## and dock icon can be disabled entirely with the  GLFW_COCOA_MENUBAR init
+  ## hint.
+  ##
+  ## @remark @x11 This function will set the `LC_CTYPE` category of the
+  ## application locale according to the current environment if that category is
+  ## still "C".  This is because the "C" locale breaks Unicode text input.
+  ##
   ## @thread_safety This function must only be called from the main thread.
   ##
   ## @sa  intro_init
@@ -1543,7 +1626,7 @@ proc getMonitorPos*(monitor: GLFWMonitor, xpos: ptr int32, ypos: ptr int32): voi
   ##
   ## @ingroup monitor
 proc getMonitorWorkarea*(monitor: GLFWMonitor, xpos: ptr int32, ypos: ptr int32, width: ptr int32, height: ptr int32): void {.importc: "glfwGetMonitorWorkarea".}
-  ## @brief Retrives the work area of the monitor.
+  ## @brief Retrieves the work area of the monitor.
   ##
   ## This function returns the position, in screen coordinates, of the upper-left
   ## corner of the work area of the specified monitor along with the work area
@@ -1809,7 +1892,7 @@ proc setGamma*(monitor: GLFWMonitor, gamma: float32): void {.importc: "glfwSetGa
   ## @errors Possible errors include  GLFW_NOT_INITIALIZED, 
   ## GLFW_INVALID_VALUE and  GLFW_PLATFORM_ERROR.
   ##
-  ## @remark @wayland Gamma handling is a priviledged protocol, this function
+  ## @remark @wayland Gamma handling is a privileged protocol, this function
   ## will thus never be implemented and emits  GLFW_PLATFORM_ERROR.
   ##
   ## @thread_safety This function must only be called from the main thread.
@@ -1831,7 +1914,7 @@ proc getGammaRamp*(monitor: GLFWMonitor): ptr GLFWGammaramp {.importc: "glfwGetG
   ## @errors Possible errors include  GLFW_NOT_INITIALIZED and 
   ## GLFW_PLATFORM_ERROR.
   ##
-  ## @remark @wayland Gamma handling is a priviledged protocol, this function
+  ## @remark @wayland Gamma handling is a privileged protocol, this function
   ## will thus never be implemented and emits  GLFW_PLATFORM_ERROR while
   ## returning `NULL`.
   ##
@@ -1873,7 +1956,7 @@ proc setGammaRamp*(monitor: GLFWMonitor, ramp: ptr GLFWGammaramp): void {.import
   ##
   ## @remark @win32 The gamma ramp size must be 256.
   ##
-  ## @remark @wayland Gamma handling is a priviledged protocol, this function
+  ## @remark @wayland Gamma handling is a privileged protocol, this function
   ## will thus never be implemented and emits  GLFW_PLATFORM_ERROR.
   ##
   ## @pointer_lifetime The specified gamma ramp is copied before this function
@@ -2052,25 +2135,17 @@ proc glfwCreateWindowC*(width: int32, height: int32, title: cstring, monitor: GL
   ## @remark @win32 The context to share resources with must not be current on
   ## any other thread.
   ##
-  ## @remark @macos The OS only supports forward-compatible core profile contexts
-  ## for OpenGL versions 3.2 and later.  Before creating an OpenGL context of
-  ## version 3.2 or later you must set the
-  ## GLFW_OPENGL_FORWARD_COMPAT and
-  ## GLFW_OPENGL_PROFILE hints accordingly.
-  ## OpenGL 3.0 and 3.1 contexts are not supported at all on macOS.
+  ## @remark @macos The OS only supports core profile contexts for OpenGL
+  ## versions 3.2 and later.  Before creating an OpenGL context of version 3.2 or
+  ## later you must set the GLFW_OPENGL_PROFILE
+  ## hint accordingly.  OpenGL 3.0 and 3.1 contexts are not supported at all
+  ## on macOS.
   ##
   ## @remark @macos The GLFW window has no icon, as it is not a document
   ## window, but the dock icon will be the same as the application bundle's icon.
   ## For more information on bundles, see the
   ## [Bundle Programming Guide](https://developer.apple.com/library/mac/documentation/CoreFoundation/Conceptual/CFBundles/)
   ## in the Mac Developer Library.
-  ##
-  ## @remark @macos The first time a window is created the menu bar is created.
-  ## If GLFW finds a `MainMenu.nib` it is loaded and assumed to contain a menu
-  ## bar.  Otherwise a minimal menu bar is created manually with common commands
-  ## like Hide, Quit and About.  The About entry opens a minimal about dialog
-  ## with information from the application's bundle.  Menu bar creation can be
-  ## disabled entirely with the  GLFW_COCOA_MENUBAR init hint.
   ##
   ## @remark @macos On OS X 10.10 and later the window frame will not be rendered
   ## at full resolution on Retina displays unless the
@@ -2080,11 +2155,11 @@ proc glfwCreateWindowC*(width: int32, height: int32, title: cstring, monitor: GL
   ## [High Resolution Guidelines for OS X](https://developer.apple.com/library/mac/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html)
   ## in the Mac Developer Library.  The GLFW test and example programs use
   ## a custom `Info.plist` template for this, which can be found as
-  ## `CMake/MacOSXBundleInfo.plist.in` in the source tree.
+  ## `CMake/Info.plist.in` in the source tree.
   ##
   ## @remark @macos When activating frame autosaving with
   ## GLFW_COCOA_FRAME_NAME, the specified
-  ## window size and position may be overriden by previously saved values.
+  ## window size and position may be overridden by previously saved values.
   ##
   ## @remark @x11 Some window managers will not respect the placement of
   ## initially hidden windows.
@@ -3570,9 +3645,11 @@ proc glfwGetKeyName*(key: int32, scancode: int32): cstring {.importc: "glfwGetKe
   ## @errors Possible errors include  GLFW_NOT_INITIALIZED and 
   ## GLFW_PLATFORM_ERROR.
   ##
+  ## @remark The contents of the returned string may change when a keyboard
+  ## layout change event is received.
+  ##
   ## @pointer_lifetime The returned string is allocated and freed by GLFW.  You
-  ## should not free it yourself.  It is valid until the next call to 
-  ## glfwGetKeyName, or until the library is terminated.
+  ## should not free it yourself.  It is valid until the library is terminated.
   ##
   ## @thread_safety This function must only be called from the main thread.
   ##
@@ -3781,19 +3858,44 @@ proc createCursor*(image: ptr GLFWImage, xhot: int32, yhot: int32): GLFWCursor {
 proc glfwCreateStandardCursor*(shape: int32): GLFWCursor {.importc: "glfwCreateStandardCursor".}
   ## @brief Creates a cursor with a standard shape.
   ##
-  ## Returns a cursor with a standard shape, that can be set for
-  ## a window with  glfwSetCursor.
+  ## Returns a cursor with a standard shape, that can be set for a window with
+  ##  glfwSetCursor.  The images for these cursors come from the system
+  ## cursor theme and their exact appearance will vary between platforms.
+  ##
+  ## Most of these shapes are guaranteed to exist on every supported platform but
+  ## a few may not be present.  See the table below for details.
+  ##
+  ## Cursor shape                    Windows  macOS  X11     Wayland
+  ## ------------------------------  -------  -----  ------  -------
+  ##  GLFW_ARROW_CURSOR          Yes      Yes    Yes     Yes
+  ##  GLFW_IBEAM_CURSOR          Yes      Yes    Yes     Yes
+  ##  GLFW_CROSSHAIR_CURSOR      Yes      Yes    Yes     Yes
+  ##  GLFW_POINTING_HAND_CURSOR  Yes      Yes    Yes     Yes
+  ##  GLFW_RESIZE_EW_CURSOR      Yes      Yes    Yes     Yes
+  ##  GLFW_RESIZE_NS_CURSOR      Yes      Yes    Yes     Yes
+  ##  GLFW_RESIZE_NWSE_CURSOR    Yes      Yes<sup>1</sup>  Maybe<sup>2</sup>  Maybe<sup>2</sup>
+  ##  GLFW_RESIZE_NESW_CURSOR    Yes      Yes<sup>1</sup>  Maybe<sup>2</sup>  Maybe<sup>2</sup>
+  ##  GLFW_RESIZE_ALL_CURSOR     Yes      Yes    Yes     Yes
+  ##  GLFW_NOT_ALLOWED_CURSOR    Yes      Yes    Maybe<sup>2</sup>  Maybe<sup>2</sup>
+  ##
+  ## 1) This uses a private system API and may fail in the future.
+  ##
+  ## 2) This uses a newer standard that not all cursor themes support.
+  ##
+  ## If the requested shape is not available, this function emits a 
+  ## GLFW_CURSOR_UNAVAILABLE error and returns `NULL`.
   ##
   ## @paramin shape One of the standard shapes.
   ## @return A new cursor ready to use or `NULL` if an
   ## error occurred.
   ##
   ## @errors Possible errors include  GLFW_NOT_INITIALIZED, 
-  ## GLFW_INVALID_ENUM and  GLFW_PLATFORM_ERROR.
+  ## GLFW_INVALID_ENUM,  GLFW_CURSOR_UNAVAILABLE and 
+  ## GLFW_PLATFORM_ERROR.
   ##
   ## @thread_safety This function must only be called from the main thread.
   ##
-  ## @sa  cursor_object
+  ## @sa  cursor_standard
   ## @sa  glfwCreateCursor
   ##
   ## @since Added in version 3.1.
@@ -4316,7 +4418,7 @@ proc glfwGetJoystickName*(jid: int32): cstring {.importc: "glfwGetJoystickName".
   ##
   ## @ingroup input
 proc glfwGetJoystickGUID*(jid: int32): cstring {.importc: "glfwGetJoystickGUID".}
-  ## @brief Returns the SDL comaptible GUID of the specified joystick.
+  ## @brief Returns the SDL compatible GUID of the specified joystick.
   ##
   ## This function returns the SDL compatible GUID, as a UTF-8 encoded
   ## hexadecimal string, of the specified joystick.  The returned string is
@@ -4523,7 +4625,7 @@ proc glfwGetGamepadName*(jid: int32): cstring {.importc: "glfwGetGamepadName".}
 proc glfwGetGamepadState*(jid: int32, state: ptr GLFWGamepadstate): int32 {.importc: "glfwGetGamepadState".}
   ## @brief Retrieves the state of the specified joystick remapped as a gamepad.
   ##
-  ## This function retrives the state of the specified joystick remapped to
+  ## This function retrieves the state of the specified joystick remapped to
   ## an Xbox-like gamepad.
   ##
   ## If the specified joystick is not present or does not have a gamepad mapping
@@ -4939,7 +5041,7 @@ proc glfwGetRequiredInstanceExtensions*(count: ptr uint32): cstringArray {.impor
   ##
   ## This function returns an array of names of Vulkan instance extensions required
   ## by GLFW for creating Vulkan surfaces for GLFW windows.  If successful, the
-  ## list will always contains `VK_KHR_surface`, so if you don't require any
+  ## list will always contain `VK_KHR_surface`, so if you don't require any
   ## additional extensions you can pass this list directly to the
   ## `VkInstanceCreateInfo` struct.
   ##
@@ -4964,8 +5066,9 @@ proc glfwGetRequiredInstanceExtensions*(count: ptr uint32): cstringArray {.impor
   ## returned array, as it is an error to specify an extension more than once in
   ## the `VkInstanceCreateInfo` struct.
   ##
-  ## @remark @macos This function currently only supports the
-  ## `VK_MVK_macos_surface` extension from MoltenVK.
+  ## @remark @macos This function currently supports either the
+  ## `VK_MVK_macos_surface` extension from MoltenVK or `VK_EXT_metal_surface`
+  ## extension.
   ##
   ## @pointer_lifetime The returned array is allocated and freed by GLFW.  You
   ## should not free it yourself.  It is guaranteed to be valid only until the
