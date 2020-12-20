@@ -20,9 +20,10 @@ suite "GLFW":
     discard window.setKeyCallback(keyProc)
     window.makeContextCurrent()
 
-    var hwnd = window.getWGLContext()
-    if hwnd == nil:
-      echo "oh no"
+    when defined windows:
+      var hwnd = window.getWGLContext()
+      if hwnd == nil:
+        echo "oh no"
 
   test "main loop":
     while not window.windowShouldClose:

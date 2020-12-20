@@ -154,11 +154,8 @@ $RECYCLE.BIN/
 ### NimGL ###
 
 # Tests
-tests/general
-tests/tgeneral
-tests/tglfw
-tests/tmath
-tests/topengl
+tests/test
+tools/generator
 imgui.ini
 docs/
 
