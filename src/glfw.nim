@@ -1601,7 +1601,7 @@ proc glfwSetErrorCallback*(callback: GLFWErrorfun): GLFWErrorfun {.importc: "glf
   ## @since Added in version 3.0.
   ##
   ## @ingroup init
-proc glfwGetMonitors*(count: ptr int32): UncheckedArray[GLFWMonitor] {.importc: "glfwGetMonitors".}
+proc glfwGetMonitors*(count: ptr int32): ptr UncheckedArray[GLFWMonitor] {.importc: "glfwGetMonitors".}
   ## @brief Returns the currently connected monitors.
   ##
   ## This function returns an array of handles for all currently connected

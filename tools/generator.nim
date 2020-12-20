@@ -95,7 +95,7 @@ proc translateType*(name: string): string =
   for d in 0 ..< depth:
     result = "ptr " & result
     if result == "ptr GLFWMonitor":
-      result = "UncheckedArray[GLFWMonitor]"
+      result = "ptr UncheckedArray[GLFWMonitor]"
     elif result == "ptr cstring":
       result = "cstringArray"
     elif result == "ptr Display":
