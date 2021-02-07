@@ -103,16 +103,29 @@ proc translateType*(name: string): string =
 
 proc genConstants*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
-  output.add("\n# Constants and Enums\n")
 
   type ParsedEnum = object
     doc: string
     items: OrderedTable[string, string]
   var enums: OrderedTable[string, ParsedEnum]
 
+  type ParsedConstant = object
+    doc: string
+    value: string
+  var constants: OrderedTable[string, ParsedConstant]
+
   var isDocumentation = false
   var documentation = ""
   var line = ""
+
+  proc addConstant(name: string, value: string) =
+    let pascalName = name.split('_').title()
+    if documentation.startsWith("    ## @}"):
+      documentation = ""
+    if documentation.replace("\n", "") == "":
+      documentation = ""
+    constants[pascalName] = ParsedConstant(doc: documentation.formatDoc(), value: value)
+
   while header.readLine(line):
     if line.startsWith("/*!"):
       isDocumentation = true
@@ -157,6 +170,11 @@ proc genConstants*(output: var string) =
           if documentation.startsWith("    ## @}"):
             documentation = ""
           enums[enumName] = ParsedEnum(doc: documentation.formatDoc())
+        elif toSeq(enums.keys).pop != enumName:
+          # if the item is declared somewhere away from the other items,
+          # just treat it as a constant instead of adding it to the enum
+          addConstant(name, value)
+          continue
 
         var nameParts = name.split('_')
         nameParts.delete(0, nameTrim) # Change depending on enum
@@ -171,22 +189,22 @@ proc genConstants*(output: var string) =
         enums[enumName].items[name] = value
 
       else:
-        output.add("const\n")
-        name = name.split('_').title()
-        if name == "GLFWCursor":
-          name = "GLFWCursorSpecial"
-          output.add("  {name}* = {value} ## Originally GLFW_CURSOR but conflicts with GLFWCursor type\n".fmt)
-          continue
-        output.add("  {name}* = {value}\n".fmt)
+        addConstant(name, value)
 
-        if documentation.startsWith("    ## @}"):
-          documentation = ""
-        if documentation.replace("\n", "") == "":
-          documentation = ""
-        output.add(documentation.formatDoc())
+  output.add("\n# Constants and Enums\n")
 
+  output.add("const\n")
+  for name, parsedConstant in constants.pairs():
+    if name == "GLFWCursor":
+      let newName = "GLFWCursorSpecial"
+      output.add("  {newName}* = {parsedConstant.value} ## Originally GLFW_CURSOR but conflicts with GLFWCursor type\n".fmt)
+      continue
+    output.add("  {name}* = {parsedConstant.value}\n".fmt)
+    output.add(parsedConstant.doc)
+
+  output.add("type\n")
   for enumName, parsedEnum in enums.pairs():
-    output.add("type\n  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
+    output.add("  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
     output.add(parsedEnum.doc)
     for name, value in parsedEnum.items.pairs():
       output.add("    {name} = {value}\n".fmt)
