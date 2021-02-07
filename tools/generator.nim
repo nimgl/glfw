@@ -1,6 +1,6 @@
 # Written by Leonardo Mariscal <leo@ldmd.mx>, 2019
 
-import strutils, streams, sequtils, ./utils, strformat
+import strutils, streams, sequtils, ./utils, strformat, tables
 
 var opaqueTypes: seq[string]
 
@@ -105,7 +105,11 @@ proc genConstants*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
   output.add("\n# Constants and Enums\n")
 
-  var inEnum = "something"
+  type ParsedEnum = object
+    doc: string
+    items: OrderedTable[string, string]
+  var enums: OrderedTable[string, ParsedEnum]
+
   var isDocumentation = false
   var documentation = ""
   var line = ""
@@ -133,7 +137,7 @@ proc genConstants*(output: var string) =
       var possibleEnums = ["KEY", "MOUSE", "JOYSTICK", "GAMEPAD", "HAT"]
 
       let constType = name.split('_')[1]
-      if possibleEnums.contains(constType) and name != "GLFW_JOYSTICK_HAT_BUTTONS":
+      if possibleEnums.contains(constType):
         var nameTrim = 1
         var enumName = "GLFWKey"
         if constType == "MOUSE":
@@ -149,12 +153,10 @@ proc genConstants*(output: var string) =
           else:
             enumName = "GLFWGamepadAxis"
 
-        if inEnum != enumName:
-          inEnum = enumName
-          output.add("type\n  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
+        if not enums.contains(enumName):
           if documentation.startsWith("    ## @}"):
             documentation = ""
-          output.add(documentation.formatDoc())
+          enums[enumName] = ParsedEnum(doc: documentation.formatDoc())
 
         var nameParts = name.split('_')
         nameParts.delete(0, nameTrim) # Change depending on enum
@@ -166,12 +168,10 @@ proc genConstants*(output: var string) =
         if not value[0].isDigit():
           continue
 
-        output.add("    {name} = {value}\n".fmt)
+        enums[enumName].items[name] = value
 
       else:
-        if inEnum != "":
-          output.add("const\n")
-          inEnum = ""
+        output.add("const\n")
         name = name.split('_').title()
         if name == "GLFWCursor":
           name = "GLFWCursorSpecial"
@@ -184,6 +184,13 @@ proc genConstants*(output: var string) =
         if documentation.replace("\n", "") == "":
           documentation = ""
         output.add(documentation.formatDoc())
+
+  for enumName, parsedEnum in enums.pairs():
+    output.add("type\n  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
+    output.add(parsedEnum.doc)
+    for name, value in parsedEnum.items.pairs():
+      output.add("    {name} = {value}\n".fmt)
+
   header.close()
 
 proc genTypes*(output: var string) =
