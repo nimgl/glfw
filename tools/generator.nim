@@ -191,6 +191,8 @@ proc genConstants*(output: var string) =
       else:
         addConstant(name, value)
 
+  header.close()
+
   output.add("\n# Constants and Enums\n")
 
   output.add("const\n")
@@ -206,10 +208,9 @@ proc genConstants*(output: var string) =
   for enumName, parsedEnum in enums.pairs():
     output.add("  {enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
     output.add(parsedEnum.doc)
+    assert parsedEnum.items.len > 1, "The " & enumName & " enum has " & $parsedEnum.items.len & " items, it should have more!"
     for name, value in parsedEnum.items.pairs():
       output.add("    {name} = {value}\n".fmt)
-
-  header.close()
 
 proc genTypes*(output: var string) =
   let header = newFileStream("src/glfw/private/glfw/include/GLFW/glfw3.h", fmRead)
