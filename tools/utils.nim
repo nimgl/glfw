@@ -24,10 +24,13 @@ when defined(glfwDLL):
   else:
     const glfw_dll* = "libglfw.so.3"
 else:
-  {.compile: "glfw/private/glfw/src/vulkan.c".}
+  when not defined(emscripten):
+    {.compile: "glfw/private/glfw/src/vulkan.c".}
 
   # Thanks to ephja for making this build system
-  when defined(windows):
+  when defined(emscripten):
+    {.passL: "-s USE_GLFW=3".}
+  elif defined(windows):
     {.passC: "-D_GLFW_WIN32",
       passL: "-lopengl32 -lgdi32",
       compile: "glfw/private/glfw/src/win32_init.c",
@@ -78,11 +81,12 @@ else:
       compile: "glfw/private/glfw/src/osmesa_context.c",
       compile: "glfw/private/glfw/src/posix_thread.c".}
 
-  {.compile: "glfw/private/glfw/src/context.c",
-    compile: "glfw/private/glfw/src/init.c",
-    compile: "glfw/private/glfw/src/input.c",
-    compile: "glfw/private/glfw/src/monitor.c",
-    compile: "glfw/private/glfw/src/window.c".}
+  when not defined(emscripten):
+    {.compile: "glfw/private/glfw/src/context.c",
+      compile: "glfw/private/glfw/src/init.c",
+      compile: "glfw/private/glfw/src/input.c",
+      compile: "glfw/private/glfw/src/monitor.c",
+      compile: "glfw/private/glfw/src/window.c".}
 
 when defined(vulkan):
   import vulkan
