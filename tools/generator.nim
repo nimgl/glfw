@@ -188,13 +188,14 @@ proc genConstants*(output: var string) =
   for define in defines:
     if define.group.len == 1:
       for name, value in define.group.pairs():
+        var newName = define.enumName & name
         output.add("const\n")
-        if name == "GLFWCursor":
-          let newName = "GLFWCursorSpecial"
+        if newName == "GLFWCursor":
+          newName = "GLFWCursorSpecial"
           output.add("  {newName}* = {value} ## Originally GLFW_CURSOR but conflicts with GLFWCursor type\n".fmt)
-          continue
-        output.add("  {name}* = {value}\n".fmt)
-        output.add(define.doc)
+        else:
+          output.add("  {newName}* = {value}\n".fmt)
+          output.add(define.doc)
     elif define.group.len > 1:
       output.add("type\n")
       output.add("  {define.enumName}* {{.pure, size: int32.sizeof.}} = enum\n".fmt)
