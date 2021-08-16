@@ -154,6 +154,8 @@ $RECYCLE.BIN/
 ### NimGL ###
 
 # Tests
+tools/generator
+tests/test
 tests/general
 tests/tgeneral
 tests/tglfw

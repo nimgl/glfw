@@ -87,21 +87,22 @@ when defined(vulkan):
 # Constants and Enums
 const
   GLFWVersionMajor* = 3
-    ## @brief The major version number of the GLFW library.
+    ## @brief The major version number of the GLFW header.
     ##
-    ## This is incremented when the API is changed in non-compatible ways.
+    ## The major version number of the GLFW header.  This is incremented when the
+    ## API is changed in non-compatible ways.
     ## @ingroup init
   GLFWVersionMinor* = 3
-    ## @brief The minor version number of the GLFW library.
+    ## @brief The minor version number of the GLFW header.
     ##
-    ## This is incremented when features are added to the API but it remains
-    ## backward-compatible.
+    ## The minor version number of the GLFW header.  This is incremented when
+    ## features are added to the API but it remains backward-compatible.
     ## @ingroup init
-  GLFWVersionRevision* = 3
-    ## @brief The revision number of the GLFW library.
+  GLFWVersionRevision* = 5
+    ## @brief The revision number of the GLFW header.
     ##
-    ## This is incremented when a bug fix release is made that does not contain any
-    ## API changes.
+    ## The revision number of the GLFW header.  This is incremented when a bug fix
+    ## release is made that does not contain any API changes.
     ## @ingroup init
   GLFWTrue* = 1
     ## @brief One.
@@ -664,9 +665,9 @@ const
     ## OpenGL forward-compatibility hint
     ## and attribute.
   GLFWOpenglDebugContext* = 0x00022007
-    ## @brief OpenGL debug context hint and attribute.
+    ## @brief Debug mode context hint and attribute.
     ##
-    ## OpenGL debug context hint and
+    ## Debug mode context hint and
     ## attribute.
   GLFWOpenglProfile* = 0x00022008
     ## @brief OpenGL profile hint and attribute.
@@ -963,7 +964,7 @@ type
     ## @since Added in version 3.0.
     ##
     ## @ingroup window
-  GLFWWindowmaximizeFun* = proc(window: GLFWWindow, iconified: int32): void {.cdecl.}
+  GLFWWindowmaximizeFun* = proc(window: GLFWWindow, maximized: int32): void {.cdecl.}
     ## @brief The function pointer type for window maximize callbacks.
     ##
     ## This is the function pointer type for window maximize callbacks.  A window
@@ -973,7 +974,7 @@ type
     ## @endcode
     ##
     ## @param[in] window The window that was maximized or restored.
-    ## @param[in] iconified `GLFW_TRUE` if the window was maximized, or
+    ## @param[in] maximized `GLFW_TRUE` if the window was maximized, or
     ## `GLFW_FALSE` if it was restored.
     ##
     ## @sa  window_maximize
@@ -1299,6 +1300,8 @@ proc glfwTerminate*(): void {.importc: "glfwTerminate".}
   ## before the application exits.  If initialization fails, there is no need to
   ## call this function, as it is called by  glfwInit before it returns
   ## failure.
+  ##
+  ## This function has no effect if GLFW is not initialized.
   ##
   ## @errors Possible errors include  GLFW_PLATFORM_ERROR.
   ##
@@ -1740,8 +1743,9 @@ proc getVideoModes*(monitor: GLFWMonitor, count: ptr int32): ptr GLFWVidmode {.i
   ##
   ## This function returns an array of all video modes supported by the specified
   ## monitor.  The returned array is sorted in ascending order, first by color
-  ## bit depth (the sum of all channel depths) and then by resolution area (the
-  ## product of width and height).
+  ## bit depth (the sum of all channel depths), then by resolution area (the
+  ## product of width and height), then resolution width and finally by refresh
+  ## rate.
   ##
   ## @param[in] monitor The monitor to query.
   ## @param[out] count Where to store the number of video modes in the returned
@@ -4973,9 +4977,8 @@ proc glfwGetRequiredInstanceExtensions*(count: ptr uint32): cstringArray {.impor
   ## returned array, as it is an error to specify an extension more than once in
   ## the `VkInstanceCreateInfo` struct.
   ##
-  ## @remark @macos This function currently supports either the
-  ## `VK_MVK_macos_surface` extension from MoltenVK or `VK_EXT_metal_surface`
-  ## extension.
+  ## @remark @macos GLFW currently supports both the `VK_MVK_macos_surface` and
+  ## the newer `VK_EXT_metal_surface` extensions.
   ##
   ## @pointer_lifetime The returned array is allocated and freed by GLFW.  You
   ## should not free it yourself.  It is guaranteed to be valid only until the
@@ -5055,7 +5058,7 @@ when defined(vulkan):
     ## GLFW_API_UNAVAILABLE and  GLFW_PLATFORM_ERROR.
     ##
     ## @remark @macos This function currently always returns `GLFW_TRUE`, as the
-    ## `VK_MVK_macos_surface` extension does not provide
+    ## `VK_MVK_macos_surface` and `VK_EXT_metal_surface` extensions do not provide
     ## a `vkGetPhysicalDevice*PresentationSupport` type function.
     ##
     ## @thread_safety This function may be called from any thread.  For
