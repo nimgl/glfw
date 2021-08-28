@@ -92,7 +92,11 @@ else:
       compile: "glfw/private/glfw/src/window.c".}
 
 when defined(vulkan):
-  import vulkan
+  when not defined(nonimgl):
+    import nimgl/vulkan # By default loads nimgl/vulkan
+  else:
+    import vulkan
+
 """
 
 const srcNativeHeader* = """
@@ -115,7 +119,7 @@ const srcNativeHeader* = """
 ##
 ##  Please assert that you are using the right system for the right procedures.
 
-import glfw
+import ../glfw
 
 when defined(glfwDLL):
   when defined(windows):
