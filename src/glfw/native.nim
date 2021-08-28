@@ -17,7 +17,7 @@
 ##
 ##  Please assert that you are using the right system for the right procedures.
 
-import glfw
+import ../glfw
 
 when defined(glfwDLL):
   when defined(windows):
@@ -209,7 +209,7 @@ proc glfwSetX11SelectionString*(string: cstring): void {.importc: "glfwSetX11Sel
   ##
   ## @param[in] string A UTF-8 encoded string.
   ##
-  ## @errors Possible errors include  GLFW_NOT_INITIALIZED and 
+  ## @errors Possible errors include  GLFW_NOT_INITIALIZED and
   ## GLFW_PLATFORM_ERROR.
   ##
   ## @pointer_lifetime The specified string is copied before this function
@@ -233,11 +233,11 @@ proc glfwGetX11SelectionString*(): cstring {.importc: "glfwGetX11SelectionString
   ## @return The contents of the selection as a UTF-8 encoded string, or `NULL`
   ## if an error occurred.
   ##
-  ## @errors Possible errors include  GLFW_NOT_INITIALIZED and 
+  ## @errors Possible errors include  GLFW_NOT_INITIALIZED and
   ## GLFW_PLATFORM_ERROR.
   ##
   ## @pointer_lifetime The returned string is allocated and freed by GLFW. You
-  ## should not free it yourself. It is valid until the next call to 
+  ## should not free it yourself. It is valid until the next call to
   ## glfwGetX11SelectionString or  glfwSetX11SelectionString, or until the
   ## library is terminated.
   ##
