@@ -1668,7 +1668,7 @@ proc glfwGetVersionString*(): cstring {.importc: "glfwGetVersionString".}
   ## @since Added in version 3.0.
   ##
   ## @ingroup init
-proc glfwGetError*(description: cstringArray): int32 {.importc: "glfwGetError".}
+proc glfwGetError*(description: ptr cstring): int32 {.importc: "glfwGetError".}
   ## @brief Returns and clears the last error for the calling thread.
   ##
   ## This function returns and clears the error code of the last
