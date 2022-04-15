@@ -167,7 +167,11 @@ type
     Centered = 0
     Up = 1
     Right = 2
+    UpRight
     Down = 4
+    DownUp
+    DownRight
+    DownUpRight
     Left = 8
 type
   GLFWKey* {.pure, size: int32.sizeof.} = enum
@@ -192,8 +196,12 @@ type
     ##    "BACKSPACE", etc.)
     ##
     ## @ingroup input
+    K00 = 0
+    K01, K02, K03, K04, K05, K06, K07, K08, K09, K10, K11, K12, K13, K14, K15, K16, K17, K18, K19, K20, K21, K22, K23, K24, K25, K26, K27, K28, K29, K30, K31
     Space = 32
+    K33, K34, K35, K36, K37, K38
     Apostrophe = 39
+    K40, K41, K42, K43
     Comma = 44
     Minus = 45
     Period = 46
@@ -208,8 +216,11 @@ type
     K7 = 55
     K8 = 56
     K9 = 57
+    K58
     Semicolon = 59
+    K60
     Equal = 61
+    K62, K63, K64
     A = 65
     B = 66
     C = 67
@@ -239,9 +250,12 @@ type
     LeftBracket = 91
     Backslash = 92
     RightBracket = 93
+    K94, K95
     GraveAccent = 96
+    K97, K98, K99, K100, K101, K102, K103, K104, K105, K106, K107, K108, K109, K110, K111, K112, K113, K114, K115, K116, K117, K118, K119, K120, K121, K122, K123, K124, K125, K126, K127, K128, K129, K130, K131, K132, K133, K134, K135, K136, K137, K138, K139, K140, K141, K142, K143, K144, K145, K146, K147, K148, K149, K150, K151, K152, K153, K154, K155, K156, K157, K158, K159, K160
     World1 = 161
     World2 = 162
+    K163, K164, K165, K166, K167, K168, K169, K170, K171, K172, K173, K174, K175, K176, K177, K178, K179, K180, K181, K182, K183, K184, K185, K186, K187, K188, K189, K190, K191, K192, K193, K194, K195, K196, K197, K198, K199, K200, K201, K202, K203, K204, K205, K206, K207, K208, K209, K210, K211, K212, K213, K214, K215, K216, K217, K218, K219, K220, K221, K222, K223, K224, K225, K226, K227, K228, K229, K230, K231, K232, K233, K234, K235, K236, K237, K238, K239, K240, K241, K242, K243, K244, K245, K246, K247, K248, K249, K250, K251, K252, K253, K254, K255
     Escape = 256
     Enter = 257
     Tab = 258
@@ -256,11 +270,13 @@ type
     PageDown = 267
     Home = 268
     End = 269
+    K270, K271, K272, K273, K274, K275, K276, K277, K278, K279
     CapsLock = 280
     ScrollLock = 281
     NumLock = 282
     PrintScreen = 283
     Pause = 284
+    K285, K286, K287, K288, K289
     F1 = 290
     F2 = 291
     F3 = 292
@@ -286,6 +302,7 @@ type
     F23 = 312
     F24 = 313
     F25 = 314
+    K315, K316, K317, K318, K319
     Kp0 = 320
     Kp1 = 321
     Kp2 = 322
@@ -303,6 +320,7 @@ type
     KpAdd = 334
     KpEnter = 335
     KpEqual = 336
+    K337, K338, K339
     LeftShift = 340
     LeftControl = 341
     LeftAlt = 342
@@ -1052,7 +1070,7 @@ type
     ## This describes a single 2D image.
     width*: int32
     height*: int32
-    pixels*: ptr cuchar
+    pixels*: ptr uint8
   GLFWGamepadState* = object
     ## This describes the input state of a gamepad.
     buttons*: array[15, bool]
@@ -4488,7 +4506,7 @@ proc glfwGetJoystickAxes*(jid: int32, count: ptr int32): ptr float32 {.importc: 
   ## @since Added in version 3.0.  Replaces `glfwGetJoystickPos`.
   ##
   ## @ingroup input
-proc glfwGetJoystickButtons*(jid: int32, count: ptr int32): ptr cuchar {.importc: "glfwGetJoystickButtons".}
+proc glfwGetJoystickButtons*(jid: int32, count: ptr int32): ptr uint8 {.importc: "glfwGetJoystickButtons".}
   ## @brief Returns the state of all buttons of the specified joystick.
   ##
   ## This function returns the state of all buttons of the specified joystick.
@@ -4527,7 +4545,7 @@ proc glfwGetJoystickButtons*(jid: int32, count: ptr int32): ptr cuchar {.importc
   ## @glfw3 Changed to return a dynamic array.
   ##
   ## @ingroup input
-proc glfwGetJoystickHats*(jid: int32, count: ptr int32): ptr cuchar {.importc: "glfwGetJoystickHats".}
+proc glfwGetJoystickHats*(jid: int32, count: ptr int32): ptr uint8 {.importc: "glfwGetJoystickHats".}
   ## @brief Returns the state of all hats of the specified joystick.
   ##
   ## This function returns the state of all hats of the specified joystick.
@@ -5428,5 +5446,5 @@ proc glfwCreateWindow*(width: int32, height: int32, title: cstring = "NimGL", mo
   ## Utility to create the window with a proper icon.
   result = glfwCreateWindowC(width, height, title, monitor, share)
   if not icon: return result
-  var image = GLFWImage(pixels: cast[ptr cuchar](nimglLogo[0].addr), width: nimglLogoWidth, height: nimglLogoHeight)
+  var image = GLFWImage(pixels: cast[ptr uint8](nimglLogo[0].addr), width: nimglLogoWidth, height: nimglLogoHeight)
   result.setWindowIcon(1, image.addr)
